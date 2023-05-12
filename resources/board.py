@@ -65,7 +65,7 @@ class PostListResource(Resource) :
             i = 0
             for row in result_list :
                 result_list[i]['createdAt'] = row['createdAt'].strftime('%Y-%m-%d')
-
+                result_list[i]['updatedAt'] = row['updatedAt'].strftime('%Y-%m-%d')
                 i = i + 1
 
             cursor.close()
@@ -128,10 +128,10 @@ class FindRelatedPostsResource(Resource):
                 post_id1 = list(post_id1)[0]
                 post_id2 = list(post_id2)[0]
                 if post_id1 != post_id2:
-                    if post_id1 < post_id2:
-                        cursor.execute(insert_query, (post_id1, post_id2, similarity))
-                    else:
-                        cursor.execute(insert_query, (post_id2, post_id1, similarity))
+        
+                    cursor.execute(insert_query, (post_id1, post_id2, similarity))
+                    cursor.execute(insert_query, (post_id2, post_id1, similarity))
+                    
 
 
 
