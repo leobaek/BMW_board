@@ -1,0 +1,47 @@
+<div class="container" style="text-align: center;">
+    <br>
+    <h1><a href="#">게시판</a></h1>
+    <br>
+    <a href="/write" class="btn btn-outline-info float-right">글쓰기</a>
+    <br>
+    <style>
+        table {
+            width: 100%;
+            border: 2px solid;
+        }
+        th, td {
+            width: 25%;
+            text-align: center;
+            border: 1px solid;
+        }
+    </style>
+    <table class="table table-hover table-striped" style="max-width: 1500; margin: 5 auto;">
+        <thead>
+            <tr>
+                <th>제목</th>
+                <th>날짜</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td><a href="/post/{{row[2]}}">{{row[0]}}</a></td>
+                    <td>{{ row[1] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<hr>
+<div class="text-right">
+    <ul class="pagination justify-content-center" style="display: inline-block;">
+        <li style="display: inline-block;"><a href="#" style="margin-right:5px ;" class="text-secondary">◀</a></li>
+        <li style="display: inline-block;"><a href="#" style="margin-right:5px ;" class="text-secondary">1</a></li>
+        <li style="display: inline-block;"><a href="#" style="margin-right:5px ;" class="text-secondary">2</a></li>
+        <li style="display: inline-block;"><a href="#" style="margin-right:5px ;" class="text-secondary">3</a></li>
+        <li style="display: inline-block;"><a href="#" style="margin-right:5px ;" class="text-secondary">4</a></li>
+        <li style="display: inline-block;"><a href="#" style="margin-right:5px ;" class="text-secondary">5</a></li>
+        <li style="display: inline-block;"><a href="#" style="margin-right:5px ;" class="text-secondary">▶</a></li>
+    </ul>
+    
+</div>

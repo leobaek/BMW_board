@@ -1,86 +1,46 @@
 from itertools import combinations
 from konlpy.tag import Okt
-from flask import request
+from flask import Request, redirect, render_template, request
 from flask_restful import Resource
 from mysql_connection import get_connection
 from mysql.connector import Error
 from collections import defaultdict
 
 
+
 # 게시글 작성
-class WriteContentResource(Resource) : 
-
-    def post(self) :
-
-        # 게시글 id
-        # 제목
-        # 본문
-        # 날짜
-
-        data = request.get_json()
-
-        try :
+class WriteContentResource(Resource):
+    def post(self):
+        try:
+            # MySQL 데이터베이스 연결
             connection = get_connection()
 
-            query = '''insert into post (title,content) 
-                    values (%s,%s);'''
-            
-            record = (data["title"],data["content"])
+            # HTTP 요청에서 게시글 제목과 내용 추출
+            title = request.form['title']
+            content = request.form['content']
 
+            # SQL 쿼리를 사용하여 게시글 생성
             cursor = connection.cursor()
-
+            query = "INSERT INTO post (title, content) VALUES (%s, %s)"
+            record = (title, content)
             cursor.execute(query, record)
-
             connection.commit()
 
+            # MySQL 연결 종료
             cursor.close()
             connection.close()
 
-        except Error as e :
+            # HTTP 응답 반환
+            return redirect("/board/related")
+        
+
+        except Error as e:
+            # 에러 발생시 HTTP 500 에러 응답 반환
             print(e)
             cursor.close()
             connection.close()
-            return{"error" : str(e)}, 500
-        
-        return {"result" : "success"}
+            return {"error": str(e)}, 500
 
-
-
-# 게시글 목록
-class PostListResource(Resource) : 
-
-    def get(self) :
-
-        try : 
-            connection = get_connection()
-
-            query = '''select * from post;'''
-
-            cursor = connection.cursor(dictionary=True)
-
-            cursor.execute(query, )
-
-            result_list = cursor.fetchall()
-
-            i = 0
-            for row in result_list :
-                result_list[i]['createdAt'] = row['createdAt'].strftime('%Y-%m-%d')
-                result_list[i]['updatedAt'] = row['updatedAt'].strftime('%Y-%m-%d')
-                i = i + 1
-
-            cursor.close()
-            connection.close()
-
-        except Error as e :
-            print(e)
-            cursor.close()
-            connection.close()
-
-            return{"result" : "fail", "error": str(e)},500
-        
-        return{"result" : "success", "user":result_list},200
-
-    
 # 전체 게시글에서 60퍼센트 이상 쓰이는 단어 제외한 데이터 추출하는 함수
 def extract_words(content):
     okt = Okt()
@@ -88,16 +48,15 @@ def extract_words(content):
     words = [word for word in words if len(word) > 1]
     return words
 
-
 # 모든 게시글 단어 추출 후 word 테이블에 저장 후 연관 게시글 저장
 class FindRelatedPostsResource(Resource):
-    def post(self):
+    def get(self):
         try:
             connection = get_connection()
             cursor = connection.cursor(dictionary=True)
 
             # 모든 게시글 가져오기
-            query = "SELECT id, content FROM post"
+            query = "select id, content from post"
             cursor.execute(query)
 
             # 단어별 출현 횟수를 저장할 defaultdict 생성
@@ -123,7 +82,7 @@ class FindRelatedPostsResource(Resource):
                     post_similarities[(frozenset(post_id1['post_ids']), frozenset(post_id2['post_ids']))] = len(common_words)
 
             # related_post 테이블에 연관성 정보 저장
-            insert_query = "INSERT IGNORE INTO related_post (post_id, related_post_id, similarity) VALUES (%s, %s, %s)"
+            insert_query = "insert ignore into related_post (post_id, related_post_id, similarity) VALUES (%s, %s, %s)"
             for (post_id1, post_id2), similarity in post_similarities.items():
                 post_id1 = list(post_id1)[0]
                 post_id2 = list(post_id2)[0]
@@ -136,7 +95,7 @@ class FindRelatedPostsResource(Resource):
 
 
             # word_table에 단어와 빈도수 저장
-            insert_word_query = "INSERT INTO word_table (word, count) VALUES (%s, %s)"
+            insert_word_query = "insert into word_table (word, count) VALUES (%s, %s)"
             for word, count_dict in word_counts.items():
                 count = count_dict['count']
                 cursor.execute(insert_word_query, (word, count))
@@ -144,15 +103,52 @@ class FindRelatedPostsResource(Resource):
             connection.commit()
             cursor.close()
             connection.close()
+
+            return redirect("/")
+        
         except Error as e:
             print(e)
             cursor.close()
             connection.close()
             return {"result": "fail", "error": str(e)}, 500
 
-        return {"result": "success"}, 200
+    
 
 
+
+# # 게시글 목록
+# class PostListResource(Resource) : 
+
+#     def get(self) :
+
+#         try : 
+#             connection = get_connection()
+
+#             query = '''select * from post;'''
+
+#             cursor = connection.cursor(dictionary=True)
+
+#             cursor.execute(query, )
+
+#             rows = cursor.fetchall()
+
+#             i = 0
+#             for row in rows :
+#                 rows[i]['created_at'] = row['created_at'].strftime('%Y-%m-%d')
+#                 rows[i]['updated_at'] = row['updated_at'].strftime('%Y-%m-%d')
+#                 i = i + 1
+
+#             cursor.close()
+#             connection.close()
+
+#         except Error as e :
+#             print(e)
+#             cursor.close()
+#             connection.close()
+
+#             return{"result" : "fail", "error": str(e)},500
+        
+#         return render_template("index.html", rows=rows)
     
 
 
