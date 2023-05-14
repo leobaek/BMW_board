@@ -1,6 +1,5 @@
 # board
 게시판 과제
-# Related_Board
 
 ## 목적 및 준비물
 목적 : 게시판 만들기
