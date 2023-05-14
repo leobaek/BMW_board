@@ -12,9 +12,7 @@ api = Api(app)
 
 # 게시글 작성
 api.add_resource(WriteContentResource,'/board/new')
-print(1)
 api.add_resource(FindRelatedPostsResource,'/board/related')
-print(2)
 
 # mysql 연결
 connection = get_connection()
