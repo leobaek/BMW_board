@@ -1,6 +1,6 @@
 from itertools import combinations
 from konlpy.tag import Okt
-from flask import Request, redirect, render_template, request
+from flask import Request, redirect, request
 from flask_restful import Resource
 from mysql_connection import get_connection
 from mysql.connector import Error
@@ -19,18 +19,20 @@ class WriteContentResource(Resource):
             title = request.form['title']
             content = request.form['content']
 
-            # SQL 쿼리를 사용하여 게시글 생성
             cursor = connection.cursor()
-            query = "INSERT INTO post (title, content) VALUES (%s, %s)"
+            
+            # 게시글 삽입 쿼리
+            query = "insert into post (title, content) VALUES (%s, %s)"
             record = (title, content)
             cursor.execute(query, record)
             connection.commit()
 
-            # MySQL 연결 종료
+            
+            # Mysql
             cursor.close()
             connection.close()
 
-            # HTTP 응답 반환
+            # 작성 후 연관성 분석 path로 이동
             return redirect("/board/related")
         
 
@@ -105,14 +107,18 @@ class FindRelatedPostsResource(Resource):
             insert_word_query = "insert into word_table (word, count) VALUES (%s, %s)"
             for word, count_dict in word_counts.items():
                 count = count_dict['count']
-                cursor.execute(insert_word_query, (word, count))
+                record = (word,count)
+                cursor.execute(insert_word_query, record)
 
             connection.commit()
             cursor.close()
             connection.close()
 
+            # 메인 화면으로 이동
             return redirect("/")
         
+
+        # 예외 처리
         except Error as e:
             print(e)
             cursor.close()
@@ -120,42 +126,6 @@ class FindRelatedPostsResource(Resource):
             return {"result": "fail", "error": str(e)}, 500
 
     
-
-
-
-# # 게시글 목록
-# class PostListResource(Resource) : 
-
-#     def get(self) :
-
-#         try : 
-#             connection = get_connection()
-
-#             query = '''select * from post;'''
-
-#             cursor = connection.cursor(dictionary=True)
-
-#             cursor.execute(query, )
-
-#             rows = cursor.fetchall()
-
-#             i = 0
-#             for row in rows :
-#                 rows[i]['created_at'] = row['created_at'].strftime('%Y-%m-%d')
-#                 rows[i]['updated_at'] = row['updated_at'].strftime('%Y-%m-%d')
-#                 i = i + 1
-
-#             cursor.close()
-#             connection.close()
-
-#         except Error as e :
-#             print(e)
-#             cursor.close()
-#             connection.close()
-
-#             return{"result" : "fail", "error": str(e)},500
-        
-#         return render_template("index.html", rows=rows)
     
 
 
