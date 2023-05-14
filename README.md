@@ -2,10 +2,10 @@
 게시판 과제
 
 ## 목적 및 준비물
-목적 : 게시판 만들기
-언어 : Python
-프레임워크 : Flask
-DB : MySQL
+목적 : 게시판 만들기\
+언어 : Python\
+프레임워크 : Flask\
+DB : MySQL\
 
 ## Table
 post : id, title, content, created_at
