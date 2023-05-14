@@ -48,6 +48,7 @@ def extract_words(content):
     words = [word for word in words if len(word) > 1]
     return words
 
+
 # 모든 게시글 단어 추출 후 word 테이블에 저장 후 연관 게시글 저장
 class FindRelatedPostsResource(Resource):
     def get(self):
@@ -72,6 +73,15 @@ class FindRelatedPostsResource(Resource):
                 for word in content_words:
                     word_counts[word]['count'] += 1
                     word_counts[word]['post_ids'].add(post_id)
+            
+            # 단어의 전체 출현 횟수 계산
+            total_word_count = sum(count_dict['count'] for count_dict in word_counts.values())
+
+            # 출현 빈도가 60% 이상인 단어 제외
+            for word, count_dict in list(word_counts.items()):
+                count = count_dict['count']
+                if count / total_word_count >= 0.6:
+                    del word_counts[word]
 
             # 모든 게시글 쌍에 대해 공통 단어 개수 계산
             post_similarities = {}
@@ -90,9 +100,6 @@ class FindRelatedPostsResource(Resource):
         
                     cursor.execute(insert_query, (post_id1, post_id2, similarity))
                     cursor.execute(insert_query, (post_id2, post_id1, similarity))
-                    
-
-
 
             # word_table에 단어와 빈도수 저장
             insert_word_query = "insert into word_table (word, count) VALUES (%s, %s)"
